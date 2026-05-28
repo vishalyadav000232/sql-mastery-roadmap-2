@@ -211,7 +211,8 @@ Production-Level PostgreSQL
 ## 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/your-username/sql-mastery-roadmap.git
+git clone https://github.com/vishalyadav000232/sql-mastery-roadmap-2
+
 ```
 
 ---
