@@ -1,1 +1,3 @@
-# create_database.sql
+
+
+CREATE DATABASE sql_mastery_roadmap;

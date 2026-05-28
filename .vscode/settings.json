@@ -1,1 +1,19 @@
-# settings.json
+{
+  "editor.fontSize": 14,
+  "editor.tabSize": 2,
+  "files.autoSave": "afterDelay",
+  "editor.formatOnSave": true,
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "sql_mastery_roadmap",
+      "database": "sql_mastery_roadmap",
+      "username": "postgres",
+      "password": "vishal@123"
+    }
+  ]
+}
