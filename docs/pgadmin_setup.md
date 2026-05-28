@@ -1,0 +1,1 @@
+# pgadmin_setup.md
