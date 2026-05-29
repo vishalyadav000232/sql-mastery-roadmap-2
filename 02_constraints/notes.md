@@ -1493,3 +1493,613 @@ Because they:
 # Final Definition
 
 A Foreign Key is a database constraint that establishes relationships between tables and ensures referential integrity by allowing only valid references.
+
+
+
+
+# NOT NULL Constraint — Complete Notes
+
+---
+
+# What is NOT NULL Constraint?
+
+The `NOT NULL` constraint ensures that a column cannot contain `NULL` values.
+
+It means:
+
+> Every row must have a value in that column.
+
+---
+
+# Simple Definition
+
+NOT NULL prevents empty values in a column.
+
+---
+
+# Syntax
+
+```sql
+column_name datatype NOT NULL
+```
+
+---
+
+# Basic Example
+
+```sql
+CREATE TABLE users(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL
+);
+```
+
+Here:
+
+* `name` cannot be NULL
+* `email` cannot be NULL
+
+---
+
+# Visual Understanding
+
+```text
+users table
+
++----+--------+------------------+
+| id | name   | email            |
++----+--------+------------------+
+| 1  | Vishal | v@gmail.com      |
+| 2  | Rahul  | r@gmail.com      |
++----+--------+------------------+
+```
+
+---
+
+# Invalid Insert Example
+
+```sql
+INSERT INTO users(name)
+VALUES(NULL);
+```
+
+❌ Error
+
+Because:
+
+* `name` has NOT NULL constraint
+
+---
+
+# PostgreSQL Error
+
+```text
+ERROR:
+null value in column "name"
+violates not-null constraint
+```
+
+---
+
+# Why Do We Use NOT NULL?
+
+NOT NULL is used to ensure important data is always present.
+
+---
+
+# Real-World Examples
+
+| Column     | Why NOT NULL?           |
+| ---------- | ----------------------- |
+| username   | User must have name     |
+| email      | Required for login      |
+| password   | Authentication required |
+| order_date | Order must have date    |
+| amount     | Payment amount required |
+
+---
+
+# Difference Between NULL and Empty String
+
+Very important interview concept.
+
+---
+
+# NULL
+
+Means:
+
+> No value / unknown value
+
+---
+
+# Empty String
+
+```sql
+''
+```
+
+Means:
+
+> Value exists but empty
+
+---
+
+# Example
+
+```sql
+INSERT INTO users(name)
+VALUES('');
+```
+
+✅ Allowed
+
+Because:
+
+* empty string is NOT NULL
+
+---
+
+# Visual Difference
+
+| Value | Meaning    |
+| ----- | ---------- |
+| NULL  | No value   |
+| ''    | Empty text |
+
+---
+
+# How NOT NULL Works Internally
+
+When inserting data:
+
+```sql
+INSERT INTO users(name)
+VALUES(NULL);
+```
+
+PostgreSQL internally:
+
+1. Reads schema
+2. Checks NOT NULL constraint
+3. Finds NULL value
+4. Rejects insert
+
+---
+
+# Internal Flow
+
+```text
+INSERT Request
+      ↓
+Check NOT NULL Constraint
+      ↓
+Value NULL?
+   /      \
+ YES       NO
+ ↓          ↓
+ERROR     INSERT
+```
+
+---
+
+# NOT NULL During CREATE TABLE
+
+```sql
+CREATE TABLE employees(
+    employee_id SERIAL PRIMARY KEY,
+    employee_name VARCHAR(100) NOT NULL,
+    salary NUMERIC(10,2) NOT NULL
+);
+```
+
+---
+
+# Adding NOT NULL Using ALTER TABLE
+
+If table already exists:
+
+```sql
+ALTER TABLE employees
+ALTER COLUMN employee_name
+SET NOT NULL;
+```
+
+---
+
+# Removing NOT NULL Constraint
+
+```sql
+ALTER TABLE employees
+ALTER COLUMN employee_name
+DROP NOT NULL;
+```
+
+---
+
+# Important Problem While Adding NOT NULL
+
+Suppose existing rows already contain NULL values.
+
+Example:
+
+| employee_name |
+| ------------- |
+| Vishal        |
+| NULL          |
+
+Now:
+
+```sql
+ALTER TABLE employees
+ALTER COLUMN employee_name
+SET NOT NULL;
+```
+
+❌ Error
+
+Because:
+
+* old rows violate constraint
+
+---
+
+# Solution
+
+First update NULL values:
+
+```sql
+UPDATE employees
+SET employee_name = 'Unknown'
+WHERE employee_name IS NULL;
+```
+
+Then apply:
+
+```sql
+ALTER TABLE employees
+ALTER COLUMN employee_name
+SET NOT NULL;
+```
+
+---
+
+# NOT NULL with DEFAULT
+
+Very common industry practice.
+
+---
+
+# Example
+
+```sql
+CREATE TABLE users(
+    id SERIAL PRIMARY KEY,
+    status VARCHAR(20) NOT NULL DEFAULT 'active'
+);
+```
+
+---
+
+# What Happens?
+
+If user does not provide status:
+
+```sql
+INSERT INTO users DEFAULT VALUES;
+```
+
+PostgreSQL automatically inserts:
+
+```text
+status = active
+```
+
+---
+
+# Why This Is Powerful
+
+Combination of:
+
+* NOT NULL
+* DEFAULT
+
+ensures:
+
+* column always has valid value
+
+---
+
+# NOT NULL vs CHECK Constraint
+
+| NOT NULL          | CHECK               |
+| ----------------- | ------------------- |
+| Prevents NULL     | Validates condition |
+| Simple validation | Complex validation  |
+
+---
+
+# Example
+
+## NOT NULL
+
+```sql
+name VARCHAR(100) NOT NULL
+```
+
+---
+
+## CHECK
+
+```sql
+age INT CHECK(age >= 18)
+```
+
+---
+
+# NOT NULL vs PRIMARY KEY
+
+Important interview topic.
+
+---
+
+# PRIMARY KEY
+
+Automatically includes:
+
+* NOT NULL
+* UNIQUE
+
+---
+
+# Example
+
+```sql
+id SERIAL PRIMARY KEY
+```
+
+Equivalent to:
+
+```sql
+id SERIAL NOT NULL UNIQUE
+```
+
+---
+
+# Real-World Backend Examples
+
+---
+
+# E-Commerce
+
+```sql
+product_name NOT NULL
+price NOT NULL
+```
+
+---
+
+# Banking
+
+```sql
+account_number NOT NULL
+balance NOT NULL
+```
+
+---
+
+# Social Media
+
+```sql
+username NOT NULL
+password NOT NULL
+```
+
+---
+
+# Why Backend Developers Use NOT NULL
+
+Because:
+
+* APIs can fail
+* frontend validation can be bypassed
+* database is final protection layer
+
+NOT NULL protects data integrity.
+
+---
+
+# Industry-Level Insight
+
+Good backend systems push validation into:
+
+* database constraints
+* not only frontend/backend code
+
+Because database is:
+
+> source of truth
+
+---
+
+# Common Beginner Mistakes
+
+---
+
+# Mistake 1
+
+Confusing NULL with empty string.
+
+---
+
+# Mistake 2
+
+Adding NOT NULL to table containing NULL values.
+
+---
+
+# Mistake 3
+
+Forgetting DEFAULT value.
+
+---
+
+# Mistake 4
+
+Using NOT NULL on optional columns.
+
+Example:
+
+* middle_name
+* profile_photo
+
+These may be optional.
+
+---
+
+# Best Practices
+
+✅ Use NOT NULL for required fields
+
+✅ Combine with DEFAULT when needed
+
+✅ Validate important business data
+
+✅ Avoid NULL in critical columns
+
+---
+
+# Interview Questions
+
+---
+
+# Basic Questions
+
+## What is NOT NULL Constraint?
+
+NOT NULL prevents NULL values in a column.
+
+---
+
+## Why Do We Use NOT NULL?
+
+To ensure required data is always present.
+
+---
+
+## Difference Between NULL and Empty String?
+
+| NULL     | Empty String |
+| -------- | ------------ |
+| No value | Empty text   |
+
+---
+
+# Intermediate Questions
+
+## Can PRIMARY KEY contain NULL?
+
+❌ No
+
+Because PRIMARY KEY automatically includes NOT NULL.
+
+---
+
+## Can NOT NULL work with DEFAULT?
+
+✅ Yes
+
+Very common in production systems.
+
+---
+
+## Can NOT NULL be removed later?
+
+✅ Yes
+
+Using:
+
+```sql
+ALTER COLUMN DROP NOT NULL
+```
+
+---
+
+# Advanced Questions
+
+## How PostgreSQL Internally Enforces NOT NULL?
+
+During:
+
+* INSERT
+* UPDATE
+
+PostgreSQL checks column values before saving row.
+
+---
+
+## Why Is NOT NULL Important in Backend Systems?
+
+Because it:
+
+* protects data
+* prevents incomplete records
+* improves reliability
+* reduces backend bugs
+
+---
+
+# Complete Example
+
+```sql
+CREATE TABLE users(
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active'
+);
+```
+
+---
+
+# Testing
+
+## Valid Insert
+
+```sql
+INSERT INTO users(username, email)
+VALUES('Vishal', 'v@gmail.com');
+```
+
+✅ Success
+
+---
+
+## Invalid Insert
+
+```sql
+INSERT INTO users(username, email)
+VALUES(NULL, 'v@gmail.com');
+```
+
+❌ Error
+
+---
+
+# Final Revision Table
+
+| Concept      | Meaning               |
+| ------------ | --------------------- |
+| NOT NULL     | Prevents NULL values  |
+| NULL         | Missing value         |
+| Empty String | Empty text value      |
+| DEFAULT      | Automatic value       |
+| PRIMARY KEY  | Includes NOT NULL     |
+| ALTER TABLE  | Add/remove constraint |
+
+---
+
+# Final Interview Definition
+
+NOT NULL is a database constraint that prevents NULL values from being stored in a column, ensuring that required data is always present and improving database integrity and reliability.
