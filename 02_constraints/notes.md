@@ -2103,3 +2103,699 @@ VALUES(NULL, 'v@gmail.com');
 # Final Interview Definition
 
 NOT NULL is a database constraint that prevents NULL values from being stored in a column, ensuring that required data is always present and improving database integrity and reliability.
+
+
+# PRIMARY KEY Constraint — Complete Deep Notes
+
+---
+
+# What is PRIMARY KEY?
+
+A PRIMARY KEY is a constraint used to uniquely identify each row in a table.
+
+It ensures:
+
+1. No duplicate values
+2. No NULL values
+
+---
+
+# Simple Definition
+
+PRIMARY KEY gives every row a unique identity.
+
+---
+
+# Real-World Analogy
+
+Think about:
+
+| System         | Unique Identifier |
+| -------------- | ----------------- |
+| Aadhaar System | Aadhaar Number    |
+| Banking        | Account Number    |
+| College        | Roll Number       |
+| Passport       | Passport Number   |
+
+Similarly in databases:
+
+* PRIMARY KEY uniquely identifies records.
+
+---
+
+# Basic Syntax
+
+```sql id="j4m2x7"
+column_name datatype PRIMARY KEY
+```
+
+---
+
+# Basic Example
+
+```sql id="w3d8vq"
+CREATE TABLE students(
+    student_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255)
+);
+```
+
+---
+
+# Understanding the Example
+
+| Column     | Constraint  |
+| ---------- | ----------- |
+| student_id | PRIMARY KEY |
+| name       | NOT NULL    |
+
+---
+
+# What PRIMARY KEY Does Internally
+
+PRIMARY KEY automatically applies:
+
+```text id="c9k1hm"
+NOT NULL + UNIQUE
+```
+
+---
+
+# Meaning
+
+| Rule     | Purpose         |
+| -------- | --------------- |
+| NOT NULL | Cannot be empty |
+| UNIQUE   | Cannot repeat   |
+
+---
+
+# Valid Inserts
+
+```sql id="f5t8ql"
+INSERT INTO students(name, email)
+VALUES
+('Vishal', 'v@gmail.com'),
+('Rahul', 'r@gmail.com');
+```
+
+✅ Success
+
+---
+
+# Result
+
+| student_id | name   |
+| ---------- | ------ |
+| 1          | Vishal |
+| 2          | Rahul  |
+
+---
+
+# Why IDs Automatically Increase?
+
+Because:
+
+```sql id="n2x4yv"
+SERIAL
+```
+
+creates:
+
+* auto-incrementing integer sequence
+
+---
+
+# Invalid Example — Duplicate PRIMARY KEY
+
+```sql id="u8j1pk"
+INSERT INTO students(student_id, name)
+VALUES(1, 'Aman');
+```
+
+❌ Error
+
+---
+
+# PostgreSQL Error
+
+```text id="m1p8xr"
+ERROR:
+duplicate key value violates unique constraint
+```
+
+---
+
+# Invalid Example — NULL PRIMARY KEY
+
+```sql id="c3v7zt"
+INSERT INTO students(student_id, name)
+VALUES(NULL, 'Aman');
+```
+
+❌ Error
+
+---
+
+# Why Error Happens?
+
+Because PRIMARY KEY includes:
+
+```text id="d8q5ls"
+NOT NULL
+```
+
+---
+
+# PostgreSQL Internal Working
+
+When inserting row:
+
+```sql id="g2w6bf"
+INSERT INTO students(student_id, name)
+VALUES(1, 'Vishal');
+```
+
+PostgreSQL internally checks:
+
+---
+
+# Step 1
+
+Does value already exist?
+
+---
+
+# Step 2
+
+Is value NULL?
+
+---
+
+# Step 3
+
+If valid:
+
+* row inserted
+
+Otherwise:
+
+* reject query
+
+---
+
+# Internal Flow
+
+```text id="q7y2ha"
+INSERT Request
+      ↓
+Check PRIMARY KEY
+      ↓
+Duplicate?
+   /      \
+ YES      NO
+ ↓          ↓
+ERROR    Continue
+              ↓
+         NULL Check
+              ↓
+           NULL?
+          /     \
+       YES      NO
+        ↓        ↓
+      ERROR    INSERT
+```
+
+---
+
+# Why PRIMARY KEY Is Important
+
+Without PRIMARY KEY:
+
+* duplicate records occur
+* relationships break
+* updates become unsafe
+* backend systems fail
+
+---
+
+# Real Backend Engineering Example
+
+Suppose:
+
+```text id="t5r3wn"
+users table
+```
+
+contains:
+
+| id | username |
+| -- | -------- |
+| 1  | Vishal   |
+| 1  | Rahul    |
+
+Problem:
+
+* Which user is correct?
+* APIs become unreliable
+
+PRIMARY KEY prevents this.
+
+---
+
+# PRIMARY KEY vs UNIQUE
+
+Very important interview topic.
+
+---
+
+# PRIMARY KEY
+
+* only one per table
+* automatically NOT NULL
+* uniquely identifies row
+
+---
+
+# UNIQUE
+
+* multiple allowed
+* allows NULL (in PostgreSQL)
+
+---
+
+# Example
+
+```sql id="h8u2nc"
+email VARCHAR(255) UNIQUE
+```
+
+---
+
+# Comparison Table
+
+| PRIMARY KEY            | UNIQUE             |
+| ---------------------- | ------------------ |
+| One per table          | Multiple allowed   |
+| NOT NULL automatically | NULL allowed       |
+| Identifies row         | Prevent duplicates |
+
+---
+
+# PRIMARY KEY with SERIAL
+
+Very common production pattern.
+
+---
+
+# Example
+
+```sql id="b9k5mz"
+id SERIAL PRIMARY KEY
+```
+
+---
+
+# What SERIAL Does Internally
+
+PostgreSQL creates:
+
+* integer column
+* sequence generator
+* auto increment behavior
+
+---
+
+# Example Output
+
+| id |
+| -- |
+| 1  |
+| 2  |
+| 3  |
+
+---
+
+# Composite PRIMARY KEY
+
+Using multiple columns together as PRIMARY KEY.
+
+---
+
+# Example
+
+```sql id="w5m2rf"
+CREATE TABLE student_courses(
+    student_id INT,
+    course_id INT,
+
+    PRIMARY KEY(student_id, course_id)
+);
+```
+
+---
+
+# Why Composite Key?
+
+Because:
+
+* one student can join many courses
+* one course can contain many students
+
+Combination must remain unique.
+
+---
+
+# Valid Data
+
+| student_id | course_id |
+| ---------- | --------- |
+| 1          | 101       |
+| 1          | 102       |
+
+---
+
+# Invalid Duplicate
+
+| student_id | course_id |
+| ---------- | --------- |
+| 1          | 101       |
+| 1          | 101       |
+
+❌ Duplicate composite key
+
+---
+
+# PRIMARY KEY and Foreign Keys
+
+PRIMARY KEY is usually referenced by:
+
+* foreign keys
+
+---
+
+# Example
+
+```sql id="m8n4qt"
+CREATE TABLE departments(
+    department_id SERIAL PRIMARY KEY
+);
+
+CREATE TABLE employees(
+    employee_id SERIAL PRIMARY KEY,
+    department_id INT,
+
+    FOREIGN KEY(department_id)
+    REFERENCES departments(department_id)
+);
+```
+
+---
+
+# Why FK References PK?
+
+Because PRIMARY KEY guarantees:
+
+* uniqueness
+* stable identity
+
+---
+
+# Industry-Level Best Practices
+
+---
+
+# 1. Always Use PRIMARY KEY
+
+Every production table should have:
+
+* primary key
+
+---
+
+# 2. Prefer Surrogate Keys
+
+Industry commonly uses:
+
+```sql id="v2x8lb"
+SERIAL
+```
+
+or
+
+```sql id="z9p3jk"
+UUID
+```
+
+instead of natural values.
+
+---
+
+# 3. Avoid Updating PRIMARY KEY
+
+Primary keys should remain stable.
+
+Changing PK can:
+
+* break relationships
+* affect foreign keys
+
+---
+
+# 4. Use Integer or UUID
+
+Best for:
+
+* indexing
+* joins
+* performance
+
+---
+
+# Production-Level Example
+
+```sql id="k4v6qh"
+CREATE TABLE users(
+    user_id SERIAL PRIMARY KEY,
+
+    username VARCHAR(100) NOT NULL,
+
+    email VARCHAR(255) NOT NULL UNIQUE,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+# Why This Schema Is Good
+
+| Constraint  | Purpose                 |
+| ----------- | ----------------------- |
+| PRIMARY KEY | Unique identity         |
+| NOT NULL    | Required data           |
+| UNIQUE      | Prevent duplicate email |
+| DEFAULT     | Auto timestamp          |
+
+---
+
+# Practice Questions with Answers
+
+---
+
+# Question 1
+
+Create products table with:
+
+* product_id PRIMARY KEY
+* product_name NOT NULL
+
+## Answer
+
+```sql id="q5y9ta"
+CREATE TABLE products(
+    product_id SERIAL PRIMARY KEY,
+    product_name VARCHAR(255) NOT NULL
+);
+```
+
+---
+
+# Question 2
+
+Insert valid product.
+
+## Answer
+
+```sql id="u7w2ks"
+INSERT INTO products(product_name)
+VALUES('Laptop');
+```
+
+---
+
+# Question 3
+
+Insert duplicate primary key.
+
+## Answer
+
+```sql id="e4r8py"
+INSERT INTO products(product_id, product_name)
+VALUES(1, 'Phone');
+```
+
+❌ Error
+
+---
+
+# Question 4
+
+Create composite primary key.
+
+## Answer
+
+```sql id="t6n1mf"
+CREATE TABLE enrollments(
+    student_id INT,
+    course_id INT,
+
+    PRIMARY KEY(student_id, course_id)
+);
+```
+
+---
+
+# Question 5
+
+Difference between PRIMARY KEY and UNIQUE?
+
+## Answer
+
+| PRIMARY KEY | UNIQUE           |
+| ----------- | ---------------- |
+| One/table   | Multiple allowed |
+| NOT NULL    | NULL allowed     |
+
+---
+
+# Interview Questions
+
+---
+
+# Basic Questions
+
+## What is PRIMARY KEY?
+
+PRIMARY KEY uniquely identifies each row.
+
+---
+
+## Can PRIMARY KEY contain NULL?
+
+❌ No
+
+---
+
+## Can PRIMARY KEY contain duplicate values?
+
+❌ No
+
+---
+
+# Intermediate Questions
+
+## Difference Between PRIMARY KEY and UNIQUE?
+
+Already discussed above.
+
+---
+
+## Why PRIMARY KEY is Important?
+
+Because it:
+
+* prevents duplicates
+* maintains identity
+* supports relationships
+
+---
+
+# Advanced Questions
+
+## How PostgreSQL Internally Enforces PRIMARY KEY?
+
+Using:
+
+* unique indexes
+* NOT NULL validation
+
+during INSERT and UPDATE operations.
+
+---
+
+## Why Are Integer Primary Keys Preferred?
+
+Because they:
+
+* improve indexing
+* speed joins
+* reduce storage
+
+---
+
+# Common Beginner Mistakes
+
+---
+
+# Mistake 1
+
+Using duplicate IDs.
+
+---
+
+# Mistake 2
+
+Using business data as PRIMARY KEY.
+
+Example:
+
+```text id="n8f3dp"
+email as PRIMARY KEY
+```
+
+Bad idea because:
+
+* emails can change
+
+---
+
+# Mistake 3
+
+Creating tables without PRIMARY KEY.
+
+---
+
+# Mistake 4
+
+Using very large text columns as PRIMARY KEY.
+
+---
+
+# Final Revision Table
+
+| Concept      | Meaning               |
+| ------------ | --------------------- |
+| PRIMARY KEY  | Unique row identity   |
+| UNIQUE       | Prevent duplicates    |
+| NOT NULL     | Prevent NULL values   |
+| SERIAL       | Auto increment        |
+| Composite PK | Multiple-column PK    |
+| FK Reference | Usually references PK |
+
+---
+
+# Final Interview Definition
+
+A PRIMARY KEY is a database constraint that uniquely identifies each row in a table by enforcing both uniqueness and non-nullability, ensuring reliable data relationships and integrity.
