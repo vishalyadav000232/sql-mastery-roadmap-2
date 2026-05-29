@@ -2799,3 +2799,718 @@ Using very large text columns as PRIMARY KEY.
 # Final Interview Definition
 
 A PRIMARY KEY is a database constraint that uniquely identifies each row in a table by enforcing both uniqueness and non-nullability, ensuring reliable data relationships and integrity.
+
+
+# UNIQUE Constraint — Complete Deep Notes
+
+---
+
+# What is UNIQUE Constraint?
+
+The `UNIQUE` constraint ensures that all values in a column are different.
+
+It prevents:
+
+* duplicate values
+
+---
+
+# Simple Definition
+
+UNIQUE ensures:
+
+> No repeated values in a column.
+
+---
+
+# Real-World Analogy
+
+Some real-world data must be unique.
+
+Examples:
+
+| System     | Unique Data     |
+| ---------- | --------------- |
+| Gmail      | Email Address   |
+| Banking    | Account Number  |
+| Aadhaar    | Aadhaar Number  |
+| Passport   | Passport Number |
+| University | Roll Number     |
+
+Databases use:
+
+```sql id="x3n7vk"
+UNIQUE
+```
+
+to enforce this rule.
+
+---
+
+# Basic Syntax
+
+```sql id="k6m1pt"
+column_name datatype UNIQUE
+```
+
+---
+
+# Basic Example
+
+```sql id="h7v2qd"
+CREATE TABLE users(
+    user_id SERIAL PRIMARY KEY,
+
+    username VARCHAR(100) NOT NULL,
+
+    email VARCHAR(255) UNIQUE
+);
+```
+
+---
+
+# Understanding the Example
+
+| Column   | Constraint  |
+| -------- | ----------- |
+| user_id  | PRIMARY KEY |
+| username | NOT NULL    |
+| email    | UNIQUE      |
+
+---
+
+# What UNIQUE Does
+
+It ensures:
+
+* no two rows can have same email
+
+---
+
+# Valid Inserts
+
+```sql id="v4p8ty"
+INSERT INTO users(username, email)
+VALUES
+('Vishal', 'v@gmail.com'),
+('Rahul', 'r@gmail.com');
+```
+
+✅ Success
+
+---
+
+# Invalid Duplicate Insert
+
+```sql id="s2j9wc"
+INSERT INTO users(username, email)
+VALUES('Aman', 'v@gmail.com');
+```
+
+❌ Error
+
+---
+
+# PostgreSQL Error
+
+```text id="q1n4xe"
+ERROR:
+duplicate key value violates unique constraint
+```
+
+---
+
+# Why Error Happened?
+
+Because:
+
+```text id="l5b2rk"
+v@gmail.com
+```
+
+already exists.
+
+---
+
+# PostgreSQL Internal Working
+
+When inserting:
+
+```sql id="n8t3qh"
+INSERT INTO users(username, email)
+VALUES('Aman', 'v@gmail.com');
+```
+
+PostgreSQL internally:
+
+1. Reads table metadata
+2. Finds UNIQUE constraint
+3. Searches existing values
+4. Detects duplicate
+5. Rejects insert
+
+---
+
+# Internal Flow
+
+```text id="z9m6pv"
+INSERT Query
+      ↓
+Check UNIQUE Constraint
+      ↓
+Duplicate Exists?
+   /         \
+ YES         NO
+ ↓            ↓
+ERROR       INSERT
+```
+
+---
+
+# UNIQUE Allows NULL Values
+
+Very important PostgreSQL interview topic.
+
+---
+
+# Example
+
+```sql id="u7f4jc"
+CREATE TABLE users(
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE
+);
+```
+
+---
+
+# Valid Inserts
+
+```sql id="p2r9mk"
+INSERT INTO users(email)
+VALUES(NULL);
+
+INSERT INTO users(email)
+VALUES(NULL);
+```
+
+✅ Allowed in PostgreSQL
+
+---
+
+# Why?
+
+Because:
+
+```text id="e5w1tn"
+NULL ≠ NULL
+```
+
+in SQL logic.
+
+NULL means:
+
+> unknown value
+
+---
+
+# UNIQUE vs PRIMARY KEY
+
+Very important interview question.
+
+---
+
+# PRIMARY KEY
+
+* only one per table
+* automatically NOT NULL
+* uniquely identifies rows
+
+---
+
+# UNIQUE
+
+* multiple allowed
+* NULL allowed
+* prevents duplicates
+
+---
+
+# Comparison Table
+
+| PRIMARY KEY            | UNIQUE               |
+| ---------------------- | -------------------- |
+| One per table          | Multiple allowed     |
+| NOT NULL automatically | NULL allowed         |
+| Main row identity      | Duplicate prevention |
+
+---
+
+# Example
+
+```sql id="b4h8yr"
+CREATE TABLE users(
+    user_id SERIAL PRIMARY KEY,
+
+    email VARCHAR(255) UNIQUE,
+
+    phone VARCHAR(20) UNIQUE
+);
+```
+
+Here:
+
+* two UNIQUE constraints exist
+
+---
+
+# Real Backend Engineering Example
+
+Suppose:
+
+* two users register with same email
+
+Without UNIQUE:
+
+| id | email                             |
+| -- | --------------------------------- |
+| 1  | [v@gmail.com](mailto:v@gmail.com) |
+| 2  | [v@gmail.com](mailto:v@gmail.com) |
+
+Problems:
+
+* login confusion
+* authentication failure
+* password reset issues
+
+UNIQUE prevents this.
+
+---
+
+# UNIQUE with NOT NULL
+
+Very common production pattern.
+
+---
+
+# Example
+
+```sql id="t7k3xa"
+email VARCHAR(255) NOT NULL UNIQUE
+```
+
+---
+
+# Why Combine Them?
+
+| Constraint | Purpose        |
+| ---------- | -------------- |
+| NOT NULL   | Email required |
+| UNIQUE     | No duplicates  |
+
+---
+
+# Production-Level Example
+
+```sql id="m6d9qp"
+CREATE TABLE users(
+    user_id SERIAL PRIMARY KEY,
+
+    username VARCHAR(100) NOT NULL UNIQUE,
+
+    email VARCHAR(255) NOT NULL UNIQUE,
+
+    password_hash TEXT NOT NULL
+);
+```
+
+---
+
+# Why This Design Is Good
+
+| Column        | Reason                |
+| ------------- | --------------------- |
+| username      | Unique login identity |
+| email         | Unique authentication |
+| password_hash | Required security     |
+
+---
+
+# Composite UNIQUE Constraint
+
+UNIQUE can apply to multiple columns together.
+
+---
+
+# Example
+
+```sql id="w3y6jf"
+CREATE TABLE enrollments(
+    student_id INT,
+    course_id INT,
+
+    UNIQUE(student_id, course_id)
+);
+```
+
+---
+
+# Meaning
+
+Same student:
+
+* cannot enroll same course twice
+
+---
+
+# Valid Data
+
+| student_id | course_id |
+| ---------- | --------- |
+| 1          | 101       |
+| 1          | 102       |
+
+---
+
+# Invalid Duplicate
+
+| student_id | course_id |
+| ---------- | --------- |
+| 1          | 101       |
+| 1          | 101       |
+
+❌ Duplicate combination
+
+---
+
+# Adding UNIQUE Using ALTER TABLE
+
+---
+
+# Add UNIQUE
+
+```sql id="f1r8ku"
+ALTER TABLE users
+ADD CONSTRAINT unique_email
+UNIQUE(email);
+```
+
+---
+
+# Remove UNIQUE
+
+```sql id="y9v4sc"
+ALTER TABLE users
+DROP CONSTRAINT unique_email;
+```
+
+---
+
+# Important Problem While Adding UNIQUE
+
+Suppose duplicates already exist.
+
+Example:
+
+| email                             |
+| --------------------------------- |
+| [a@gmail.com](mailto:a@gmail.com) |
+| [a@gmail.com](mailto:a@gmail.com) |
+
+Now:
+
+```sql id="n4k7tx"
+ALTER TABLE users
+ADD CONSTRAINT unique_email
+UNIQUE(email);
+```
+
+❌ Error
+
+Because:
+
+* existing rows violate UNIQUE constraint
+
+---
+
+# Correct Solution
+
+## Step 1 — Find Duplicates
+
+```sql id="c2m9bz"
+SELECT email, COUNT(*)
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+```
+
+---
+
+# Step 2 — Fix Duplicates
+
+Update/delete duplicate rows.
+
+---
+
+# Step 3 — Add UNIQUE
+
+```sql id="s6p1wd"
+ALTER TABLE users
+ADD CONSTRAINT unique_email
+UNIQUE(email);
+```
+
+---
+
+# How PostgreSQL Internally Implements UNIQUE
+
+PostgreSQL creates:
+
+* unique index internally
+
+This allows:
+
+* fast duplicate checking
+* efficient searches
+
+---
+
+# UNIQUE and Performance
+
+UNIQUE improves:
+
+* search performance
+* indexing
+
+But:
+
+* inserts become slightly slower
+  because duplicate checks occur.
+
+---
+
+# Industry-Level Best Practices
+
+---
+
+# Use UNIQUE For
+
+✅ emails
+✅ usernames
+✅ phone numbers
+✅ account numbers
+✅ transaction IDs
+
+---
+
+# Avoid UNIQUE For
+
+❌ names
+❌ cities
+❌ departments
+
+because duplicates are natural.
+
+---
+
+# Important Engineering Insight
+
+Databases should enforce:
+
+* critical business rules
+
+not only frontend/backend.
+
+Because:
+
+* APIs may fail
+* frontend validation may break
+
+Database remains:
+
+> final protection layer
+
+---
+
+# Practice Questions with Answers
+
+---
+
+# Question 1
+
+Create users table where email must be unique.
+
+## Answer
+
+```sql id="r8m5xh"
+CREATE TABLE users(
+    user_id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE
+);
+```
+
+---
+
+# Question 2
+
+Insert duplicate email.
+
+## Answer
+
+```sql id="u2t7vn"
+INSERT INTO users(email)
+VALUES('v@gmail.com');
+
+INSERT INTO users(email)
+VALUES('v@gmail.com');
+```
+
+❌ Error
+
+---
+
+# Question 3
+
+Can UNIQUE contain NULL values?
+
+## Answer
+
+✅ Yes in PostgreSQL
+
+---
+
+# Question 4
+
+Create composite UNIQUE constraint.
+
+## Answer
+
+```sql id="g6p3wy"
+CREATE TABLE enrollments(
+    student_id INT,
+    course_id INT,
+
+    UNIQUE(student_id, course_id)
+);
+```
+
+---
+
+# Question 5
+
+Add UNIQUE using ALTER TABLE.
+
+## Answer
+
+```sql id="n7x1ks"
+ALTER TABLE users
+ADD CONSTRAINT unique_username
+UNIQUE(username);
+```
+
+---
+
+# Interview Questions
+
+---
+
+# Basic Questions
+
+## What is UNIQUE Constraint?
+
+UNIQUE prevents duplicate values in a column.
+
+---
+
+## Can UNIQUE contain NULL values?
+
+✅ Yes in PostgreSQL
+
+---
+
+# Intermediate Questions
+
+## Difference Between PRIMARY KEY and UNIQUE?
+
+| PRIMARY KEY | UNIQUE           |
+| ----------- | ---------------- |
+| One/table   | Multiple allowed |
+| NOT NULL    | NULL allowed     |
+
+---
+
+## Why Is UNIQUE Important?
+
+Because it:
+
+* prevents duplicates
+* protects business logic
+* improves data integrity
+
+---
+
+# Advanced Questions
+
+## How PostgreSQL Internally Enforces UNIQUE?
+
+Using:
+
+* unique indexes
+
+during INSERT and UPDATE operations.
+
+---
+
+## Why Is UNIQUE Important in Backend Systems?
+
+Because it prevents:
+
+* duplicate accounts
+* authentication problems
+* inconsistent data
+
+---
+
+# Common Beginner Mistakes
+
+---
+
+# Mistake 1
+
+Using UNIQUE on columns that naturally duplicate.
+
+---
+
+# Mistake 2
+
+Forgetting NOT NULL with UNIQUE.
+
+---
+
+# Mistake 3
+
+Adding UNIQUE when duplicates already exist.
+
+---
+
+# Mistake 4
+
+Confusing UNIQUE with PRIMARY KEY.
+
+---
+
+# Final Revision Table
+
+| Concept          | Meaning                  |
+| ---------------- | ------------------------ |
+| UNIQUE           | Prevent duplicate values |
+| PRIMARY KEY      | Unique + NOT NULL        |
+| NULL             | Allowed in UNIQUE        |
+| Composite UNIQUE | Multi-column uniqueness  |
+| Unique Index     | Internal implementation  |
+
+---
+
+# Final Interview Definition
+
+UNIQUE is a database constraint that prevents duplicate values in a column or group of columns, ensuring data uniqueness and improving database integrity and backend reliability.
