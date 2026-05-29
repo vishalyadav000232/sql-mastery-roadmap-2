@@ -971,3 +971,525 @@ It helps:
 * maintain cleaner databases
 
 DEFAULT constraints are heavily used in real-world backend systems and production databases.
+
+
+## 3.  Foreign Key (FK) Notes
+
+---
+
+# What is a Foreign Key?
+
+A Foreign Key is a constraint used to create a relationship between two tables.
+
+It ensures that:
+
+> Values in one table must exist in another table.
+
+---
+
+# Why Do We Use Foreign Keys?
+
+* Maintain data consistency
+* Prevent invalid data
+* Connect related tables
+* Maintain referential integrity
+* Reduce backend bugs
+
+---
+
+# Real-World Example
+
+## Students Table
+
+| student_id | name   |
+| ---------- | ------ |
+| 1          | Vishal |
+| 2          | Rahul  |
+
+---
+
+## Enrollments Table
+
+| enrollment_id | student_id | course |
+| ------------- | ---------- | ------ |
+| 101           | 1          | DBMS   |
+| 102           | 2          | AI     |
+
+Here:
+
+* `student_id` in `enrollments`
+* references `student_id` in `students`
+
+---
+
+# Visual Understanding
+
+```text
+students
++------------+---------+
+| student_id | name    |
++------------+---------+
+| 1          | Vishal  |
+| 2          | Rahul   |
++------------+---------+
+
+        ↑
+        │
+   Foreign Key
+        │
+
+enrollments
++---------------+------------+--------+
+| enrollment_id | student_id | course |
++---------------+------------+--------+
+| 101           | 1          | DBMS   |
+| 102           | 2          | AI     |
++---------------+------------+--------+
+```
+
+---
+
+# Referential Integrity
+
+Referential Integrity means:
+
+> Relationships between tables remain valid and consistent.
+
+---
+
+# Foreign Key Syntax
+
+## CREATE TABLE Example
+
+```sql
+CREATE TABLE students (
+    student_id INT PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE enrollments (
+    enrollment_id INT PRIMARY KEY,
+    student_id INT,
+    course VARCHAR(100),
+
+    CONSTRAINT fk_student
+    FOREIGN KEY(student_id)
+    REFERENCES students(student_id)
+);
+```
+
+---
+
+# Syntax Breakdown
+
+## FOREIGN KEY(student_id)
+
+Specifies:
+
+* `student_id` is a foreign key
+
+---
+
+## REFERENCES students(student_id)
+
+Means:
+
+* value must exist in `students` table
+
+---
+
+# How Foreign Key Works
+
+When inserting data:
+
+```sql
+INSERT INTO enrollments
+VALUES(101, 1, 'DBMS');
+```
+
+PostgreSQL checks:
+
+* Does `student_id = 1` exist?
+
+If yes:
+
+* Insert successful
+
+If no:
+
+* Error occurs
+
+---
+
+# Invalid Insert Example
+
+```sql
+INSERT INTO enrollments
+VALUES(102, 500, 'AI');
+```
+
+Error because:
+
+* student `500` does not exist
+
+---
+
+# Parent Table vs Child Table
+
+| Table Type   | Meaning              |
+| ------------ | -------------------- |
+| Parent Table | Referenced table     |
+| Child Table  | Contains foreign key |
+
+---
+
+# Example
+
+| Table       | Role   |
+| ----------- | ------ |
+| students    | Parent |
+| enrollments | Child  |
+
+---
+
+# Important Rules
+
+## Rule 1
+
+Parent value must exist.
+
+---
+
+## Rule 2
+
+Datatypes must match.
+
+✅ Correct:
+
+```text
+INT → INT
+UUID → UUID
+```
+
+❌ Wrong:
+
+```text
+INT → VARCHAR
+```
+
+---
+
+## Rule 3
+
+Referenced column must be:
+
+* PRIMARY KEY
+  OR
+* UNIQUE
+
+---
+
+# Types of Relationships
+
+---
+
+# 1. One-to-Many
+
+Example:
+
+```text
+One student → Many enrollments
+```
+
+---
+
+# 2. One-to-One
+
+Example:
+
+```text
+One user → One passport
+```
+
+---
+
+# 3. Many-to-Many
+
+Example:
+
+```text
+Many students ↔ Many courses
+```
+
+Solved using:
+
+* junction table
+
+Example:
+
+```text
+student_courses
+```
+
+---
+
+# Adding Foreign Key Using ALTER TABLE
+
+```sql
+ALTER TABLE enrollments
+ADD CONSTRAINT fk_student
+FOREIGN KEY(student_id)
+REFERENCES students(student_id);
+```
+
+---
+
+# DELETE Problem
+
+Suppose:
+
+* child rows depend on parent row
+
+If parent deleted:
+
+```sql
+DELETE FROM students
+WHERE student_id = 1;
+```
+
+PostgreSQL blocks deletion.
+
+---
+
+# ON DELETE Actions
+
+---
+
+# 1. ON DELETE CASCADE
+
+Deletes child rows automatically.
+
+```sql
+FOREIGN KEY(student_id)
+REFERENCES students(student_id)
+ON DELETE CASCADE
+```
+
+---
+
+# 2. ON DELETE SET NULL
+
+Sets child foreign key to NULL.
+
+```sql
+ON DELETE SET NULL
+```
+
+---
+
+# 3. ON DELETE RESTRICT
+
+Prevents deletion.
+
+(Default behavior)
+
+---
+
+# 4. ON DELETE SET DEFAULT
+
+Sets child foreign key to default value.
+
+---
+
+# Real-World Examples
+
+## E-Commerce
+
+```text
+users → orders
+```
+
+---
+
+## Banking
+
+```text
+customers → accounts
+accounts → transactions
+```
+
+---
+
+# Backend Importance
+
+Foreign keys:
+
+* maintain integrity
+* reduce bugs
+* protect relationships
+* improve consistency
+* enforce business rules
+
+---
+
+# Common Beginner Mistakes
+
+## Mistake 1
+
+Referencing non-unique column.
+
+❌ Wrong:
+
+```sql
+REFERENCES students(name)
+```
+
+unless `name` is UNIQUE.
+
+---
+
+## Mistake 2
+
+Datatype mismatch.
+
+❌ Wrong:
+
+```text
+INT → VARCHAR
+```
+
+---
+
+## Mistake 3
+
+Ignoring delete behavior.
+
+---
+
+# PRIMARY KEY vs FOREIGN KEY
+
+| PRIMARY KEY             | FOREIGN KEY              |
+| ----------------------- | ------------------------ |
+| Uniquely identifies row | References another table |
+| Cannot repeat           | Can repeat               |
+| Cannot be NULL          | Can be NULL              |
+| One per table           | Multiple allowed         |
+
+---
+
+# Complete Example
+
+```sql
+CREATE TABLE students (
+    student_id INT PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE enrollments (
+    enrollment_id INT PRIMARY KEY,
+    student_id INT,
+    course VARCHAR(100),
+
+    CONSTRAINT fk_student
+    FOREIGN KEY(student_id)
+    REFERENCES students(student_id)
+    ON DELETE CASCADE
+);
+```
+
+---
+
+# Testing
+
+## Insert Parent Data
+
+```sql
+INSERT INTO students
+VALUES(1, 'Vishal');
+```
+
+---
+
+## Valid Insert
+
+```sql
+INSERT INTO enrollments
+VALUES(101, 1, 'DBMS');
+```
+
+✅ Success
+
+---
+
+## Invalid Insert
+
+```sql
+INSERT INTO enrollments
+VALUES(102, 500, 'AI');
+```
+
+❌ Error
+
+---
+
+# Interview Questions
+
+## Basic
+
+### What is a Foreign Key?
+
+A foreign key is a constraint used to create relationships between tables and maintain referential integrity.
+
+---
+
+## Intermediate
+
+### What is Referential Integrity?
+
+Ensuring relationships between tables remain valid.
+
+---
+
+### Difference Between PRIMARY KEY and FOREIGN KEY?
+
+Already discussed above.
+
+---
+
+## Advanced
+
+### Difference Between CASCADE and RESTRICT?
+
+| CASCADE                          | RESTRICT          |
+| -------------------------------- | ----------------- |
+| Deletes child rows automatically | Prevents deletion |
+
+---
+
+### Why Are Foreign Keys Important?
+
+Because they:
+
+* protect relationships
+* prevent invalid data
+* improve consistency
+* enforce rules
+
+---
+
+# Final Revision
+
+| Concept               | Meaning                |
+| --------------------- | ---------------------- |
+| Foreign Key           | Creates relationship   |
+| Parent Table          | Referenced table       |
+| Child Table           | Contains FK            |
+| Referential Integrity | Valid relationships    |
+| CASCADE               | Auto delete child rows |
+| RESTRICT              | Prevent delete         |
+
+---
+
+# Final Definition
+
+A Foreign Key is a database constraint that establishes relationships between tables and ensures referential integrity by allowing only valid references.
