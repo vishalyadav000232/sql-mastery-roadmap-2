@@ -1,3 +1,7 @@
+
+
+-- CHECK CONSTRAINTS
+
 ALTER TABLE users
 ADD age INT DEFAULT 18,
 CONSTRAINT chk_age
@@ -6,7 +10,6 @@ CHECK (age >= 18 AND age <= 100);
 -- this is the insert statement to insert the data into the table users with the age value that satisfies the check constraint 
 
 -- iserted the  valid record inti the users tabele 
-
 
 INSERT INTO users (name , email , age) VALUES('vishal tivari ' , 'vishalyadavtivar@gnail.com', 22);
 
@@ -18,10 +21,7 @@ INSERT INTO users (name , email ,age ) VALUES(
 , 'golu@gmail.com, ',  17
 );
 
-
 --  ❌ new row for relation "users" violates check constraint "chk_age"
-
-
 
 -- CHECK CONSTRAINTS with IN and AND 
 
@@ -37,10 +37,7 @@ INSERT INTO users (name , email , age) VALUES('vishal tivari ' , 'vishalyadavtiv
 
 INSERT INTO users (name , email , age) VALUES('golu_bhia', 'jkdfkjlka', 22)
 
-
-
 -- ❌ new row for relation "users" violates check constraint "chk_email"
-
 
 
 -- complete example of check constraints with multiple columes
