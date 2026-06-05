@@ -9,7 +9,7 @@
 
 
 
-WITH RECURSIVE numbers AS (
+WITH RECURSIVE  AS (
 
     SELECT 1
 
@@ -38,7 +38,7 @@ FROM numbers;
 -- 10
 
 
-WITH RECURSIVE employee_tree AS (
+WITH RECURSIVE  AS (
 
     SELECT
         id,
